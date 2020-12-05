@@ -99,7 +99,15 @@ export default function Horea() {
               return (
                 <tr key={i}>
                   {Object.values(transaction).map((el, i) => {
-                    return (
+                    return i === 8 ? (
+                      <td
+                        key={`${el} ${Math.floor(
+                          Math.random() * Math.floor(10)
+                        )}`}
+                      >{`${el.transactionNumber} ${
+                        el.isOpen ? "open" : "close"
+                      } `}</td>
+                    ) : (
                       <td
                         key={`${el} ${Math.floor(
                           Math.random() * Math.floor(10)
