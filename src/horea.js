@@ -12,7 +12,6 @@ const StyledSection = styled.section`
 export default function Horea() {
   const [file, setFile] = useState(null);
   const [data, setData] = useState([]);
-  // console.log("*", calculateTransactionNumber(fakeData));
 
   const checkElement = (el) => {
     return typeof el === "string"
@@ -35,7 +34,7 @@ export default function Horea() {
         // console.log("HERE d: ", d);
         setData(d);
       } catch (e) {
-        console.log("HERE e: ", e);
+        console.log("Error in handleCSVSubmit: ", e);
       }
     }
   };
@@ -54,12 +53,8 @@ export default function Horea() {
     }
   };
 
-  // console.log("HERE data: ", data);
-
   return (
     <div>
-      <div>Hello from Horea.js</div>
-
       <h1>Add transaction</h1>
       <div className="myform">
         <form id="userform" action="" onSubmit={handleCSVSubmit}>
