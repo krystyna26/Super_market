@@ -79,12 +79,6 @@ const parseRecords = async (fileContent) => {
 };
 
 export function calculateTransactionNumber(csvData: DataType) {
-  // csvData.forEach((el, i) => ({
-  //   ...el,
-  //   transaction: { transactionNumber: 0, isOpen: true },
-  //   description: checkElement(el.description),
-  // }));
-
   let counter = 1;
   let openTransactions = {};
 
@@ -99,35 +93,16 @@ export function calculateTransactionNumber(csvData: DataType) {
     Object.assign(row, { description: checkElement(row.description) });
 
     let currentSymbol = row.SYMBOL;
-    console.log(
-      "HERE current row: ",
-      index,
-      "current symbol: ",
-      currentSymbol,
-      "existing open transaction",
-      openTransactions,
-      counter
-    );
     let sumBougth, sumSold;
 
     // no open transactions
-    console.log(
-      "HERE no open transactions for: ",
-      currentSymbol,
-      !openTransactions.hasOwnProperty(currentSymbol)
-    );
     if (!openTransactions.hasOwnProperty(currentSymbol)) {
-      // Object.keys(openTransactions).length === 0 ||
       openTransactions[currentSymbol] = {
         BOUGHT: 0,
         SOLD: 0,
         innerCounter: counter,
       };
-      console.log(
-        "HERE checking open transactions before: ",
-        openTransactions,
-        Object.keys(openTransactions)
-      );
+
       // BUYING...
       if (row.description.includes("BOUGHT")) {
         let sumBougth =
@@ -137,15 +112,9 @@ export function calculateTransactionNumber(csvData: DataType) {
             BOUGHT: sumBougth,
           }),
         });
-        console.log(
-          "HERE buying new : ",
-          Object.keys(openTransactions),
-          row.QUANTITY
-        );
       }
 
       // SELLING...
-      // console.log("HERE row: ", row);
       if (row.description.includes("SOLD")) {
         let sumSold =
           openTransactions[currentSymbol]["SOLD"] + parseInt(row.QUANTITY);
@@ -155,67 +124,24 @@ export function calculateTransactionNumber(csvData: DataType) {
             BOUGHT: sumBougth,
           }),
         });
-        console.log("HERE seling new: ", row.QUANTITY);
       }
 
       // SHOULD CLOSE TRANSACTION ?
-      // if (
-      //   openTransactions[currentSymbol]["BOUGHT"] ===
-      //   openTransactions[currentSymbol]["SOLD"]
-      // ) {
-      //   counter++;
-      //   console.log("HERE closing now... ");
-      //   delete openTransactions[currentSymbol];
-      // }
-      console.log(
-        "HERE keep it open?: ",
-        openTransactions[currentSymbol]["BOUGHT"] >
-          openTransactions[currentSymbol]["SOLD"]
-      );
       if (
         openTransactions[currentSymbol]["BOUGHT"] >
         openTransactions[currentSymbol]["SOLD"]
       ) {
-        // Object.assign(row, { transaction: counter });
-        // const currentCounter = row.transaction.transactionNumber;
-        // console.log("HERE currentCounter: ", currentCounter);
         Object.assign(row, {
           transaction: Object.assign({}, row.transaction, {
             transactionNumber: openTransactions[currentSymbol].innerCounter,
             isOpen: true,
           }),
         });
-        // openTransactions[currentSymbol].innerCounter = counter;
-        console.log(
-          "HERE counter: ",
-          counter,
-          "row",
-          row,
-          openTransactions[currentSymbol].innerCounter
-          // "innerCounter",
-          // openTransactions[currentSymbol].innerCounter
-        );
         counter++;
       }
-      console.log(
-        "HERE openTransactions ~: ",
-        Object.keys(openTransactions),
-        openTransactions[currentSymbol],
-        "counter",
-        counter
-      );
     } else {
-      console.log("HERE else: ", openTransactions);
-      // console.log("HERE another transaction: ", openTransactions);
-      // console.log("HERE d: ", row.description);
       // SELLING...
       if (row.description.includes("SOLD")) {
-        console.log(
-          "HERE SELLING...: ",
-          currentSymbol,
-          openTransactions[currentSymbol]["SOLD"],
-          row
-        );
         let sum =
           openTransactions[currentSymbol]["SOLD"] + parseInt(row.QUANTITY);
         Object.assign(openTransactions, {
@@ -224,11 +150,6 @@ export function calculateTransactionNumber(csvData: DataType) {
             //BOUGHT: sumBougth
           }),
         });
-        console.log(
-          "HERE seling quantity: ",
-          sum,
-          openTransactions[currentSymbol].innerCounter
-        );
         Object.assign(row, {
           transaction: Object.assign({}, row.transaction, {
             transactionNumber: openTransactions[currentSymbol].innerCounter,
@@ -247,11 +168,6 @@ export function calculateTransactionNumber(csvData: DataType) {
             //SOLD: sumSold
           }),
         });
-        console.log(
-          "HERE buying open transaction : ",
-          Object.keys(openTransactions),
-          row.QUANTITY
-        );
       }
 
       // SHOULD CLOSE TRANSACTION ?
@@ -259,19 +175,13 @@ export function calculateTransactionNumber(csvData: DataType) {
         openTransactions[currentSymbol]["BOUGHT"] ===
         openTransactions[currentSymbol]["SOLD"]
       ) {
-        console.log("HERE ROW: ", row);
         const currentCounter = row.transaction.transactionNumber;
-        console.log("HERE currentCounter: ", currentCounter);
         Object.assign(row, {
           transaction: Object.assign({}, row.transaction, {
             transactionNumber: currentCounter,
             isOpen: false,
           }),
         });
-        // row.transaction = counter;
-        console.log("HERE CLOSING WITH counter: ", counter);
-        // counter++;
-        // console.log("HERE closing now... new counter", counter);
         delete openTransactions[currentSymbol];
       }
       if (
@@ -279,20 +189,7 @@ export function calculateTransactionNumber(csvData: DataType) {
         openTransactions[currentSymbol]["BOUGHT"] >
           openTransactions[currentSymbol]["SOLD"]
       ) {
-        // Object.assign(row, { transaction: counter });
-        console.log("HERE **: ", openTransactions[currentSymbol], row);
-        // Object.assign(row, {
-        //   transaction: Object.assign({}, row.transaction, {
-        //     transactionNumber: counter,
-        //     isOpen: true,
-        //   }),
-        // });
       }
-
-      console.log(
-        "HERE proccessed transaction ~ ~: ",
-        openTransactions[currentSymbol]
-      );
     }
   });
 
@@ -300,8 +197,7 @@ export function calculateTransactionNumber(csvData: DataType) {
 }
 
 export default async (file) => {
-  // console.log("HERE calculate: ", file);
   const fileContent = await readFileAsText(file);
-  // console.log("HERE parse: ", await parseRecords(fileContent));
+
   return parseRecords(fileContent);
 };
