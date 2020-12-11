@@ -98,15 +98,13 @@ export default function Horea() {
                       <td
                         key={`${el} ${Math.floor(
                           Math.random() * Math.floor(10)
-                        )}`}
-                      >{`${el.transactionNumber} ${
-                        el.isOpen ? "open" : "close"
-                      } `}</td>
+                        )} ${i}`}
+                      >{`${el.transactionNumber} `}</td>
                     ) : (
                       <td
                         key={`${el} ${Math.floor(
                           Math.random() * Math.floor(10)
-                        )}`}
+                        )} ${i}`}
                       >
                         {checkElement(el)}
                       </td>

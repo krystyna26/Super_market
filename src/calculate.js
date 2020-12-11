@@ -47,9 +47,6 @@ const checkElement = (el) => {
 export function readFileAsText(inputFile: File) {
   let reader = new FileReader();
 
-  // let file = inputFile.files;
-  // console.log("HERE file: ", file);
-
   return new Promise((resolve, reject) => {
     reader.onerror = () => {
       reader.abort();
@@ -70,7 +67,6 @@ const parseRecords = async (fileContent) => {
     const records = await parse(fileContent, { columns: true, trim: true });
 
     res = calculateTransactionNumber(records);
-    // const headers = Object.keys(records[0]);
   } catch (e) {
     console.log("HERE e: ", e);
     return new Error("Invalid CSV:", e);
@@ -93,7 +89,8 @@ export function calculateTransactionNumber(csvData: DataType) {
     Object.assign(row, { description: checkElement(row.description) });
 
     let currentSymbol = row.SYMBOL;
-    let sumBougth, sumSold;
+    let sumBougth = 0;
+    // sumSold = 0;
 
     // no open transactions
     if (!openTransactions.hasOwnProperty(currentSymbol)) {
@@ -124,6 +121,14 @@ export function calculateTransactionNumber(csvData: DataType) {
             BOUGHT: sumBougth,
           }),
         });
+        // new
+        Object.assign(row, {
+          transaction: Object.assign({}, row.transaction, {
+            transactionNumber: openTransactions[currentSymbol].innerCounter,
+            isOpen: true,
+          }),
+        });
+        counter++;
       }
 
       // SHOULD CLOSE TRANSACTION ?
@@ -166,6 +171,12 @@ export function calculateTransactionNumber(csvData: DataType) {
           [currentSymbol]: Object.assign({}, openTransactions[currentSymbol], {
             BOUGHT: sumBougth,
             //SOLD: sumSold
+          }),
+        });
+        Object.assign(row, {
+          transaction: Object.assign({}, row.transaction, {
+            transactionNumber: openTransactions[currentSymbol].innerCounter,
+            isOpen: true,
           }),
         });
       }
