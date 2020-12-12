@@ -9,6 +9,26 @@ const StyledSection = styled.section`
   margin: auto;
 `;
 
+const StyledP = styled.p`
+  border: 1px solid black;
+  border-radius: 7px;
+  padding: 10px;
+  width: 100px;
+`;
+
+const StyledButton = styled.button`
+  margin-bottom: 30px;
+  padding: 7px;
+`;
+
+const StyledDiv = styled.div`
+  margin-bottom: 30px;
+`;
+
+const StyledThead = styled.thead`
+  margin: 10px;
+`;
+
 export default function Horea() {
   const [file, setFile] = useState(null);
   const [data, setData] = useState([]);
@@ -27,10 +47,12 @@ export default function Horea() {
   // inside JSON go one by one
 
   const handleCSVSubmit = async (e) => {
+    const value = document.getElementById("startNumber").value;
+
     e.preventDefault();
     if (file) {
       try {
-        const d = await calculate(file);
+        const d = await calculate(file, value);
         // console.log("HERE d: ", d);
         setData(d);
       } catch (e) {
@@ -55,7 +77,7 @@ export default function Horea() {
 
   return (
     <div>
-      <h1>Add transaction</h1>
+      <h1>Calculate transaction number and business days it was active</h1>
       <div className="myform">
         <form id="userform" action="" onSubmit={handleCSVSubmit}>
           <Dropzone accept={["csv"]} onDrop={onDrop}>
@@ -63,59 +85,78 @@ export default function Horea() {
               <StyledSection>
                 <div {...getRootProps()}>
                   <input {...getInputProps()} onChange={onChange} />
-                  <p>Drag 'n' drop some files here, or click to select files</p>
+                  <StyledP>
+                    Drag 'n' drop some files here, or click to select files
+                  </StyledP>
                 </div>
               </StyledSection>
             )}
           </Dropzone>
-          <button className="adduserbutton">
+          <StyledDiv>
+            <p>Start counting transaction from:</p>
+            <input type="number" id="startNumber" />
+          </StyledDiv>
+          <StyledButton className="adduserbutton">
             Calculate transaction number
-          </button>
+          </StyledButton>
         </form>
       </div>
 
       <div className="">
         <table>
-          <thead>
+          <StyledThead>
             <tr>
               <th>Date</th>
               <th>ID</th>
               <th>Description</th>
-              <th>QUuantity</th>
+              <th>Quantity</th>
               <th>Symbol</th>
               <th>Price</th>
               <th>Commission</th>
               <th>Amount</th>
               <th>Transaction</th>
+              <th>Days</th>
             </tr>
-          </thead>
+          </StyledThead>
           <tbody>
-            {data.map((transaction, i) => {
-              return (
-                <tr key={i}>
-                  {Object.values(transaction).map((el, i) => {
-                    return i === 8 ? (
-                      <td
-                        key={`${el} ${Math.floor(
-                          Math.random() * Math.floor(10)
-                        )} ${i}`}
-                      >{`${el.transactionNumber} `}</td>
-                    ) : (
-                      <td
-                        key={`${el} ${Math.floor(
-                          Math.random() * Math.floor(10)
-                        )} ${i}`}
-                      >
-                        {checkElement(el)}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+            {data.map((transaction, i) => (
+              <TableRow row={transaction} />
+            ))}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
+
+const TableRow = ({ row }) => {
+  console.log("HERE row IN TableRow: ", row);
+  const {
+    AMOUNT,
+    COMMISSION,
+    DATE,
+    DESCRIPTION,
+    PRICE,
+    QUANTITY,
+    SYMBOL,
+    TRANSACTION_ID,
+    transaction,
+  } = row;
+
+  const { transactionNumber, days } = transaction;
+
+  return (
+    <tr>
+      <td>{DATE}</td>
+      <td>{TRANSACTION_ID}</td>
+      <td>{DESCRIPTION}</td>
+      <td>{QUANTITY}</td>
+      <td>{SYMBOL}</td>
+      <td>{PRICE}</td>
+      <td>{COMMISSION}</td>
+      <td>{AMOUNT}</td>
+      <td>{transactionNumber}</td>
+      <td>{days}</td>
+    </tr>
+  );
+};

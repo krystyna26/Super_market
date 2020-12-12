@@ -1,4 +1,5 @@
 import parse from "csv-parse/lib/sync";
+import { differenceInBusinessDays } from "date-fns";
 
 type DataType = [
   {
@@ -10,27 +11,6 @@ type DataType = [
     transaction: number,
     description: string,
   }
-];
-
-export const fakeData = [
-  {
-    date: "01/02/2020",
-    quantity: 1000,
-    symbol: "FIRST",
-    price: 16.285,
-    amount: 16.285,
-    description: "Bought 1000 RAD @ 16.38",
-    transaction: 0,
-  },
-  {
-    date: "01/02/2020",
-    quantity: 2000,
-    symbol: "SECOND",
-    price: 12.125,
-    amount: 12.125,
-    description: "Sold 1000 RAD @ 16.23",
-    transaction: 0,
-  },
 ];
 
 const checkElement = (el) => {
@@ -61,21 +41,21 @@ export function readFileAsText(inputFile: File) {
 }
 
 // 2
-const parseRecords = async (fileContent) => {
+const parseRecords = async (fileContent, value) => {
   let res = [];
   try {
     const records = await parse(fileContent, { columns: true, trim: true });
 
-    res = calculateTransactionNumber(records);
+    res = calculateTransactionNumber(records, value);
   } catch (e) {
-    console.log("HERE e: ", e);
+    console.log("Invalid CSV: ", e);
     return new Error("Invalid CSV:", e);
   }
   return res;
 };
 
-export function calculateTransactionNumber(csvData: DataType) {
-  let counter = 1;
+export function calculateTransactionNumber(csvData: DataType, value: number) {
+  let counter = value ? value : 1;
   let openTransactions = {};
 
   csvData.forEach((row, index) => {
@@ -86,7 +66,7 @@ export function calculateTransactionNumber(csvData: DataType) {
       }),
     });
 
-    Object.assign(row, { description: checkElement(row.description) });
+    Object.assign(row, { DESCRIPTION: checkElement(row.DESCRIPTION) });
 
     let currentSymbol = row.SYMBOL;
     let sumBougth = 0;
@@ -98,10 +78,11 @@ export function calculateTransactionNumber(csvData: DataType) {
         BOUGHT: 0,
         SOLD: 0,
         innerCounter: counter,
+        firstDay: row.DATE,
+        days: 0,
       };
-
       // BUYING...
-      if (row.description.includes("BOUGHT")) {
+      if (row.DESCRIPTION.includes("BOUGHT")) {
         let sumBougth =
           openTransactions[currentSymbol]["BOUGHT"] + parseInt(row.QUANTITY);
         Object.assign(openTransactions, {
@@ -109,10 +90,17 @@ export function calculateTransactionNumber(csvData: DataType) {
             BOUGHT: sumBougth,
           }),
         });
+
+        Object.assign(row, {
+          transaction: Object.assign({}, row.transaction, {
+            transactionNumber: openTransactions[currentSymbol].innerCounter,
+            // date: true,
+          }),
+        });
       }
 
       // SELLING...
-      if (row.description.includes("SOLD")) {
+      if (row.DESCRIPTION.includes("SOLD")) {
         let sumSold =
           openTransactions[currentSymbol]["SOLD"] + parseInt(row.QUANTITY);
         Object.assign(openTransactions, {
@@ -146,7 +134,7 @@ export function calculateTransactionNumber(csvData: DataType) {
       }
     } else {
       // SELLING...
-      if (row.description.includes("SOLD")) {
+      if (row.DESCRIPTION.includes("SOLD")) {
         let sum =
           openTransactions[currentSymbol]["SOLD"] + parseInt(row.QUANTITY);
         Object.assign(openTransactions, {
@@ -164,7 +152,7 @@ export function calculateTransactionNumber(csvData: DataType) {
       }
 
       // BUYING...
-      if (row.description.includes("BOUGHT")) {
+      if (row.DESCRIPTION.includes("BOUGHT")) {
         let sumBougth =
           openTransactions[currentSymbol]["BOUGHT"] + parseInt(row.QUANTITY);
         Object.assign(openTransactions, {
@@ -187,19 +175,17 @@ export function calculateTransactionNumber(csvData: DataType) {
         openTransactions[currentSymbol]["SOLD"]
       ) {
         const currentCounter = row.transaction.transactionNumber;
+        const start = openTransactions[currentSymbol]["firstDay"];
+        const last = row.DATE;
+
         Object.assign(row, {
           transaction: Object.assign({}, row.transaction, {
             transactionNumber: currentCounter,
             isOpen: false,
+            days: differenceInBusinessDays(new Date(last), new Date(start)) + 1,
           }),
         });
         delete openTransactions[currentSymbol];
-      }
-      if (
-        openTransactions.hasOwnProperty(currentSymbol) &&
-        openTransactions[currentSymbol]["BOUGHT"] >
-          openTransactions[currentSymbol]["SOLD"]
-      ) {
       }
     }
   });
@@ -207,8 +193,8 @@ export function calculateTransactionNumber(csvData: DataType) {
   return csvData;
 }
 
-export default async (file) => {
+export default async (file, value) => {
   const fileContent = await readFileAsText(file);
 
-  return parseRecords(fileContent);
+  return parseRecords(fileContent, value);
 };
