@@ -4,19 +4,28 @@ import Dropzone from "react-dropzone";
 import styled from "styled-components";
 // import CSVReader from "react-csv-reader";
 
+const Cell = styled.td`
+  padding: 5px;
+`;
+
+const Header = styled.th`
+  padding: 5px;
+`;
+
 const StyledSection = styled.section`
   width: 100px;
   margin: auto;
 `;
 
 const StyledP = styled.p`
-  border: 1px solid black;
+  border: 0.8px dashed black;
   border-radius: 7px;
   padding: 10px;
   width: 100px;
 `;
 
 const StyledButton = styled.button`
+  border-radius: 10px;
   margin-bottom: 30px;
   padding: 7px;
 `;
@@ -25,8 +34,22 @@ const StyledDiv = styled.div`
   margin-bottom: 30px;
 `;
 
-const StyledThead = styled.thead`
+const Head = styled.thead`
   margin: 10px;
+  background-color: antiquewhite;
+`;
+
+const Body = styled.tbody`
+  tr:nth-child(even) {
+    background-color: oldlace;
+  }
+`;
+
+const Input = styled.input`
+  border-radius: 9px;
+  border: 2px solid;
+  padding: 5px;
+  max-width: 60px;
 `;
 
 export default function Horea() {
@@ -43,9 +66,6 @@ export default function Horea() {
       : el;
   };
 
-  // parse it first from csv to JSON
-  // inside JSON go one by one
-
   const handleCSVSubmit = async (e) => {
     const value = document.getElementById("startNumber").value;
 
@@ -53,7 +73,6 @@ export default function Horea() {
     if (file) {
       try {
         const d = await calculate(file, value);
-        // console.log("HERE d: ", d);
         setData(d);
       } catch (e) {
         console.log("Error in handleCSVSubmit: ", e);
@@ -94,7 +113,7 @@ export default function Horea() {
           </Dropzone>
           <StyledDiv>
             <p>Start counting transaction from:</p>
-            <input type="number" id="startNumber" />
+            <Input type="number" id="startNumber" />
           </StyledDiv>
           <StyledButton className="adduserbutton">
             Calculate transaction number
@@ -103,26 +122,30 @@ export default function Horea() {
       </div>
 
       <div className="">
-        <table>
-          <StyledThead>
+        <table style={{ minWidth: "90%" }}>
+          <Head>
             <tr>
-              <th>Date</th>
-              <th>ID</th>
-              <th>Description</th>
-              <th>Quantity</th>
-              <th>Symbol</th>
-              <th>Price</th>
-              <th>Commission</th>
-              <th>Amount</th>
-              <th>Transaction</th>
-              <th>Days</th>
+              {[
+                "Date",
+                "ID",
+                "Description",
+                "Quantity",
+                "Symbol",
+                "Price",
+                "Commission",
+                "Amount",
+                "Transaction",
+                "Days",
+              ].map((cell) => (
+                <Header>{cell}</Header>
+              ))}
             </tr>
-          </StyledThead>
-          <tbody>
+          </Head>
+          <Body>
             {data.map((transaction, i) => (
               <TableRow row={transaction} />
             ))}
-          </tbody>
+          </Body>
         </table>
       </div>
     </div>
@@ -130,7 +153,6 @@ export default function Horea() {
 }
 
 const TableRow = ({ row }) => {
-  console.log("HERE row IN TableRow: ", row);
   const {
     AMOUNT,
     COMMISSION,
@@ -147,16 +169,16 @@ const TableRow = ({ row }) => {
 
   return (
     <tr>
-      <td>{DATE}</td>
-      <td>{TRANSACTION_ID}</td>
-      <td>{DESCRIPTION}</td>
-      <td>{QUANTITY}</td>
-      <td>{SYMBOL}</td>
-      <td>{PRICE}</td>
-      <td>{COMMISSION}</td>
-      <td>{AMOUNT}</td>
-      <td>{transactionNumber}</td>
-      <td>{days}</td>
+      <Cell>{DATE}</Cell>
+      <Cell>{TRANSACTION_ID}</Cell>
+      <Cell>{DESCRIPTION}</Cell>
+      <Cell>{QUANTITY}</Cell>
+      <Cell>{SYMBOL}</Cell>
+      <Cell>{PRICE}</Cell>
+      <Cell>{COMMISSION}</Cell>
+      <Cell>{AMOUNT}</Cell>
+      <Cell>{transactionNumber}</Cell>
+      <Cell>{days}</Cell>
     </tr>
   );
 };
