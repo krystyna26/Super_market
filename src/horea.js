@@ -56,16 +56,6 @@ export default function Horea() {
   const [file, setFile] = useState(null);
   const [data, setData] = useState([]);
 
-  const checkElement = (el) => {
-    return typeof el === "string"
-      ? el.startsWith("Sold")
-        ? "SOLD"
-        : el.startsWith("Bought")
-        ? "BOUGHT"
-        : el
-      : el;
-  };
-
   const handleCSVSubmit = async (e) => {
     const value = document.getElementById("startNumber").value;
 
